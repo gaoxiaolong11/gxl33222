@@ -34,6 +34,12 @@
         .answer-box {
             cursor: pointer;
         }
+        #answerArea {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 6px;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen font-yuan">
@@ -42,7 +48,7 @@
 <div id="coverPage" class="min-h-screen flex flex-col items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-xl p-8 max-w-xl w-full text-center">
         <h1 class="text-4xl font-bold text-primary mb-4">🏆 看图猜词游戏</h1>
-        <p class="text-gray-600 mb-6">看图拼字，答对一题5分，限时60分钟</p>
+        <p class="text-gray-600 mb-6">看图拼字，答对一题5分，限时10分钟</p>
 
         <div class="mb-6 p-4 bg-blue-50 rounded-xl">
             <h3 class="font-bold text-lg mb-2">📊 排行榜</h3>
@@ -80,8 +86,15 @@
 
         <div class="bg-white rounded-2xl p-5 shadow mb-4 text-center">
             <p class="text-gray-700 mb-3">看图猜词，点击字库拼答案，点答案框可清除</p>
-            <img id="img" src="" class="max-h-64 mx-auto rounded-lg shadow">
-            <div id="answerArea" class="flex justify-center gap-2 mt-5"></div>
+            <img id="img" src="" class="max-h-64 mx-auto rounded-lg shadow mb-4">
+
+            <!-- 答案区域（自动换行） -->
+            <div id="answerArea" class="mb-4"></div>
+
+            <!-- 手动下一题按钮 -->
+            <button id="skipBtn" class="bg-gray-500 text-white py-2 px-4 rounded-lg mt-2">
+                跳过此题 → 下一题
+            </button>
         </div>
 
         <div class="bg-white rounded-2xl p-5 shadow">
@@ -137,7 +150,7 @@
 </div>
 
 <script>
-// ============== 核心配置（已完全修复）==============
+// ============== 核心配置 ==============
 const CONFIG = {
     time: 3600,
     perScore: 5,
@@ -183,13 +196,16 @@ let dom = {};
 ['coverPage','gamePage','nameModal','judgeModal','resultModal','rankModal','teacherModal',
  'startBtn','rankBtn','cancelName','okName','timer','score','curr','total','img','answerArea',
  'wordBank','nextQ','judgeText','rightAns','final','goRank','goHome','closeRank','playerCount',
- 'teacherBtn','recordList','closeTeacher','clearAll','homeRank','fullRank','playerName'].forEach(id=>{
+ 'teacherBtn','recordList','closeTeacher','clearAll','homeRank','fullRank','playerName','skipBtn'].forEach(id=>{
     dom[id] = document.getElementById(id);
 });
 
 // 初始化
 dom.total.textContent = CONFIG.questions.length;
 loadStorage();
+
+// 绑定跳过按钮
+dom.skipBtn.onclick = goNextQuestion;
 
 // 封面事件绑定
 dom.startBtn.onclick = ()=>dom.nameModal.classList.remove('hidden');
@@ -240,7 +256,7 @@ function renderQ(){
 
     for(let i=0;i<len;i++){
         let b = document.createElement('div');
-        b.className = 'answer-box w-12 h-12 border-2 border-primary rounded-lg flex items-center justify-center text-xl font-bold bg-white';
+        b.className = 'answer-box w-10 h-10 border-2 border-primary rounded-lg flex items-center justify-center text-lg font-bold bg-white';
         b.dataset.i = i;
         b.onclick = ()=>{
             game.userAns[i] = '';
@@ -286,8 +302,8 @@ function checkAns(){
     dom.judgeModal.classList.remove('hidden');
 }
 
-// 下一题
-dom.nextQ.onclick = ()=>{
+// 下一题（封装成函数，可手动调用）
+function goNextQuestion(){
     dom.judgeModal.classList.add('hidden');
     game.q++;
     if(game.q >= CONFIG.questions.length){
@@ -301,7 +317,8 @@ dom.nextQ.onclick = ()=>{
     dom.curr.textContent = game.q+1;
     shuffleWords();
     renderQ();
-};
+}
+dom.nextQ.onclick = goNextQuestion;
 
 // 倒计时
 function startTimer(){
